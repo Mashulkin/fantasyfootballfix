@@ -185,6 +185,9 @@ class FFFPlayersParser:
         
         processed_data = {}
         
+        # Get column order once at the beginning
+        order = self._get_column_order()
+        
         for item in stats:
             try:
                 # Extract player information
@@ -222,7 +225,6 @@ class FFFPlayersParser:
                 )
                 
                 # Filter stats to only include columns we want
-                order = self._get_column_order()
                 filtered_stats = {}
                 for key in stats_info.keys():
                     if key in order:

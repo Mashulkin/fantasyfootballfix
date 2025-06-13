@@ -11,11 +11,13 @@ exp_goals:                 xG
 exp_goals_no_penalty:      NPxG
 clean_sheet:               CS
 attempts_conceded:         SC
-sot_conc:           OTC
+sot_conc:                  OTC
 attempts_conceded_ibox:    InC
-att_hd_conc:        HdC
-bc_conc:            BCC
+att_hd_conc:               HdC
+bc_conc:                   BCC
 goals_conceded:            GC
 exp_goals_conceded:        xGC
 total_yel_card:            YC
 bonus_points:              B
+gw:                        Gw
+venue:                     Venue
