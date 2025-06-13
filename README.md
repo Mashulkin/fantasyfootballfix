@@ -11,6 +11,7 @@
 ✅ **Прогресс-трекинг** - отчеты о ходе выполнения  
 ✅ **Соответствие PEP 8** - чистый и читаемый код  
 ✅ **Гибкие настройки** - переменные окружения и конфигурация  
+✅ **Поддержка команд** - парсер для команд обновлен до v2.0  
 
 ## Установка
 
@@ -61,8 +62,6 @@ PASSWORD = 'your-password'
 ```bash
 # Парсинг всего сезона (все игровые недели, дома и в гостях)
 python players.py
-
-# Парсинг команд
 python teams.py
 ```
 
@@ -71,28 +70,35 @@ python teams.py
 ```bash
 # Парсинг конкретного диапазона игровых недель
 python players.py --min-gw 1 --max-gw 5
+python teams.py --min-gw 1 --max-gw 5
 
 # Парсинг только домашних игр
 python players.py --venue home
+python teams.py --venue home
 
 # Парсинг только гостевых игр  
 python players.py --venue away
+python teams.py --venue away
 
 # Парсинг одной игровой недели
 python players.py --min-gw 10 --max-gw 10
+python teams.py --min-gw 10 --max-gw 10
 
 # Использование кастомного конфига
 python players.py --config ./my_settings/custom.py
+python teams.py --config ./my_settings/custom.py
 ```
 
 ### Примеры команд
 
 ```bash
-# Полный сезон для игроков
+# Полный сезон для игроков и команд
 python players.py --min-gw 1 --max-gw 38 --venue home/away
+python teams.py --min-gw 1 --max-gw 38 --venue home/away
 
 # Первые 10 недель только дома
 python players.py --min-gw 1 --max-gw 10 --venue home
+python teams.py --min-gw 1 --max-gw 10 --venue home
 
 # Текущая неделя для команд
 python teams.py --min-gw 15 --max-gw 15 --venue home/away
@@ -110,11 +116,13 @@ project/
 │   ├── validation.py      # Валидация данных
 │   ├── config.py          # Конфигурация
 │   └── logger.py          # Логирование
-├── auth.py                 # Модуль авторизации
-├── statistic.py           # API клиент для FFF
-├── format.py              # Форматирование данных
+├── functions/              # Функции парсера
+│   ├── __init__.py
+│   ├── auth.py            # Модуль авторизации
+│   ├── statistic.py       # API клиент для FFF
+│   └── format.py          # Форматирование данных
 ├── players.py             # Основной скрипт для игроков
-├── teams.py               # Основной скрипт для команд
+├── teams.py               # Основной скрипт для команд (v2.0)
 ├── settings/
 │   ├── general.py         # Основные настройки
 │   ├── FFFplayers.txt     # Колонки для игроков
@@ -136,9 +144,13 @@ PASSWORD = 'your-password'
 # Сезон
 YEAR = '2024'
 
-# Пути к файлам
+# Пути к файлам игроков
 COLUMNS = './settings/FFFplayers.txt'
 RESULT_FILE = ['./data/FFFplayers.csv']
+
+# Пути к файлам команд
+COLUMNS_TEAMS = './settings/FFFteams.txt'
+RESULT_FILE_TEAMS = ['./data/FFFteams.csv']
 
 # HTTP настройки
 REQUEST_TIMEOUT = 30
@@ -213,14 +225,16 @@ logs/
 1. **Установите зависимости**: `pip install -r requirements.txt`
 2. **Добавьте credentials**: настройте EMAIL и PASSWORD
 3. **Протестируйте**: запустите `python players.py --min-gw 1 --max-gw 1`
-4. **Обновите скрипты**: постепенно переходите на новые возможности
+4. **Протестируйте команды**: запустите `python teams.py --min-gw 1 --max-gw 1`
+5. **Обновите скрипты**: постепенно переходите на новые возможности
 
 ### Изменения в API
 
 ```python
 # Старый способ
-from functions.statistic import get_statisticPlayers
-stats = get_statisticPlayers(1, 1, 'home', '2024')
+from functions.statistic import get_statisticPlayers, get_statisticTeams
+players_stats = get_statisticPlayers(1, 1, 'home', '2024')
+teams_stats = get_statisticTeams(1, 1, 'home', '2024')
 
 # Новый способ (рекомендуется)
 from statistic import FFFStatsClient
@@ -228,7 +242,8 @@ from auth import get_fff_session
 
 session_id = get_fff_session('email', 'password')
 client = FFFStatsClient('api_url', session_id)
-stats = client.get_players_stats(1, 1, 'home', '2024')
+players_stats = client.get_players_stats(1, 1, 'home', '2024')
+teams_stats = client.get_teams_stats(1, 1, 'home', '2024')
 ```
 
 ## Мониторинг и статистика
@@ -243,7 +258,8 @@ successful_gameweeks: 38
 total_gameweeks: 38
 success_rate: 100.0%
 duration_seconds: 125.5
-players_processed: 2850
+teams_processed: 760  # для teams.py
+players_processed: 2850  # для players.py
 errors_encountered: 0
 requests_made: 76
 successful_requests: 76
@@ -257,6 +273,10 @@ failed_requests: 0
 2025-06-13 12:00:01 - parser.fff_players - INFO - Processing gameweek 1/38
 2025-06-13 12:00:05 - parser.fff_players - INFO - Successfully completed GW1, venue: home
 2025-06-13 12:00:10 - parser.fff_players - INFO - Processing gameweek 2/38
+
+2025-06-13 12:05:01 - parser.fff_teams - INFO - Processing gameweek 1/38
+2025-06-13 12:05:03 - parser.fff_teams - INFO - Successfully completed GW1, venue: home
+2025-06-13 12:05:05 - parser.fff_teams - INFO - Processing gameweek 2/38
 ```
 
 ## Производительность
@@ -282,7 +302,7 @@ failed_requests: 0
 
 ```bash
 # Проверьте credentials
-python -c "from auth import get_fff_session; print(get_fff_session('email', 'password'))"
+python -c "from functions.auth import get_fff_session; print(get_fff_session('email', 'password'))"
 
 # Очистите кэш сессии
 rm data/.fff_session_cache.json
@@ -293,9 +313,11 @@ rm data/.fff_session_cache.json
 ```bash
 # Проверьте колонки
 cat settings/FFFplayers.txt
+cat settings/FFFteams.txt
 
 # Проверьте выходные файлы
 head -n 5 data/FFFplayers.csv
+head -n 5 data/FFFteams.csv
 ```
 
 ### Проблемы с сетью
@@ -306,6 +328,7 @@ curl -I https://www.fantasyfootballfix.com
 
 # Проверьте логи
 tail -f logs/parser_fff_players_$(date +%Y-%m-%d).log
+tail -f logs/parser_fff_teams_$(date +%Y-%m-%d).log
 ```
 
 ## Разработка
@@ -319,8 +342,8 @@ pytest tests/
 ### Форматирование кода
 
 ```bash
-black *.py common_modules/*.py
-flake8 *.py common_modules/*.py
+black *.py common_modules/*.py functions/*.py
+flake8 *.py common_modules/*.py functions/*.py
 ```
 
 ### Добавление новых функций
@@ -345,18 +368,21 @@ A: Отредактируйте `settings/FFFplayers.txt` или `settings/FFFte
 **Q: Парсер работает медленно, как ускорить?**  
 A: Уменьшите `REQUEST_DELAY`, но будьте осторожны с rate limiting.
 
-**Q: Как парсить только определенных игроков?**  
+**Q: Как парсить только определенных игроков/команды?**  
 A: Используйте фильтры после получения данных или модифицируйте API запросы.
+
+**Q: В чем разница между players.py и teams.py?**  
+A: `players.py` парсит статистику отдельных игроков, `teams.py` - статистику команд.
 
 ## Поддержка
 
-- 📧 Email: [ваш-email]
-- 🐛 Issues: [GitHub Issues]
-- 📖 Docs: [документация]
+- 📧 Email: 
+- 🐛 Issues: 
+- 📖 Docs: 
 
 ## Лицензия
 
-[Укажите лицензию]
+
 
 ---
 
